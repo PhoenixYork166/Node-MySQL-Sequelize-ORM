@@ -1,6 +1,16 @@
+// import class Sequelize from installed npm module
+const Sequelize = require('sequelize');
+
+const sequelize = new Sequelize('node-complete', 'root', 'rootGor1', {
+    dialect: 'mysql',
+    host: 'localhost'
+});
+
+module.exports = sequelize;
+/*
 const mysql = require('mysql2');
 
-/* 2 ways of connecting to MySQL database */
+// 2 ways of connecting to MySQL database
 const pool = mysql.createPool({
     host: 'localhost',
     user: 'root',
@@ -8,7 +18,7 @@ const pool = mysql.createPool({
     database: 'node-complete'
 });
 
-/* Get a connection to check if the pool connects successfully */
+// Get a connection to check if the pool connects successfully
 pool.getConnection((err, connection) => {
     if (err) {
         console.log(`Error connecting to the database:`);
@@ -22,6 +32,6 @@ pool.getConnection((err, connection) => {
     }
 });
 
-/* To alllow running of Async code using Promises
-instead of Nested code */
+// To alllow running of Async code using Promises instead of Nested code
 module.exports = pool.promise();
+*/

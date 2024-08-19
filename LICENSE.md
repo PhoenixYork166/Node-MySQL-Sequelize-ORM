@@ -2,6 +2,7 @@ BSD 3-Clause License
 
 Copyright (c) 2024, Maximilian Schwarzmüller
 All rights reserved.
+
 Learnt & Re-captured & Illustrated by 2024, Berlin Lee as a fellow student
 
 Redistribution and use in source and binary forms, with or without
