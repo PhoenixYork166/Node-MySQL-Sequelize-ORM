@@ -4,7 +4,8 @@ const path = require('path');
 // const bodyParser = require('body-parser');
 const rootDir = require('./util/path');
 const errorController = require('./controllers/error');
-const db = require('./util/database');
+const sequelize = require('./util/database');
+// const db = require('./util/database');
 const app = express();
 console.log(`root directory is:\n${rootDir}`);
 
@@ -41,7 +42,23 @@ app.use((error, req, res, next) => {
     });
 })
 
-const port = 3005;
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+// Using Sequelize
+// All Error Handling middleware must be above sequelize.sync()
+sequelize.sync()
+.then(result => {
+    console.log(`OK!\nSucceeded in connecting Node app to Database`);
+    console.log(`rootDir/app.js sequelize.sync() result:`);
+    console.log(result);
+    console.log(`\n`);
+    const port = 3005;
+    app.listen(port, () => {
+        console.log(`Server running at http://localhost:${port}`);
+    });
+})
+.catch((err) => {
+    console.log(`Error rootDir/app.js sequelize.sync()\n${err}\n`);
 });
+
+
+
+

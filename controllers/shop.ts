@@ -6,7 +6,6 @@ without instantiation */
 const Product = require('../models/product');
 
 /* Temp Cart items database .json file */
-// import { Cart } from '../models/cart';
 const Cart = require('../models/cart');
 
 /* Declaring an interface for RouteParams */
@@ -156,7 +155,7 @@ exports.getCart = (req: Request, res: Response, next: NextFunction) => {
       /* iv. for loop of each product */
       for (const eachProduct of fetchedProducts) {
         /* v. Matching eachProduct.id */
-        const cartProductData = cart.products.find((retrievedProduct: any) => {
+        const cartProductData = cart.products.find((retrievedProduct: CartItem) => {
             return retrievedProduct.id === eachProduct.id;
         })
 
