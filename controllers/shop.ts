@@ -1,19 +1,25 @@
+import { Request, Response, NextFunction, RequestHandler } from 'express';
+
 /* Import class Product from rootDir/models/product.js
 to access Product.fetchAll() public static method
 without instantiation */
-// import Product from '../models/product';
 const Product = require('../models/product');
 
 /* Temp Cart items database .json file */
-// import Cart from '../models/cart';
+// import { Cart } from '../models/cart';
 const Cart = require('../models/cart');
+
+/* Declaring an interface for RouteParams */
+interface RouteParams {
+    productId: string;
+}
 
 /* 
 Export a callback function to be used by 
 router.get('/products', shopController.getProducts); in routes/shop.js 
 for rendering rootDir/views/shop/product-list.ejs
 */
-exports.getProducts = (req, res, next) => {
+export const getProducts: RequestHandler = (req, res, next) => {
   /* This allows us to hook into this Funnel 
   through which the HTTP request to send */
   console.log(`Hosting of views/shop/product-list.ejs\nthrough router.get is in progress\nfor http://localhost:3005/products\n`);
@@ -33,7 +39,7 @@ exports.getProducts = (req, res, next) => {
       prods: rows,
     });
   })
-  .catch((err) => console.log(`Error Product.fetchAll(): Promise:\n${err}\n`));
+  .catch((err: Error) => console.log(`Error Product.fetchAll(): Promise:\n${err}\n`));
 };
 
 /* 
@@ -42,11 +48,12 @@ router.get('/products/:productId', shopController.getProductDetail); in routes/s
 for rendering rootDir/views/product-detail.ejs template via
 http://localhost:3005/products/productUniqueId
 */
-exports.getProductDetail = (req, res, next) => {
+export const getProductDetail: RequestHandler<{ productId: string }> = (req, res, next) => {
   /* Extracting product Id using Server-side V8 Engine built-in req.params method 
   We can access productId here cuz we use productId as a param inside rootDir/routes/shop.js
   */
-  const productId = req.params.productId;
+  // const productId = req.params.productId;
+  const productId = (req.params as RouteParams).productId;
   console.log(`http://localhost:3005/products/productUniqueId\nreq.params.productId Express Route is up`);
   console.log(`req.params.productId from rootDir/routes/shop.js is being console logged:`);
   console.log(productId);
@@ -68,7 +75,7 @@ exports.getProductDetail = (req, res, next) => {
       })
     }
   )
-  .catch(err => console.log(`Err Product.findById(id): Promise<[QueryResult, FieldPacket[]]>:\n${err}\n`));
+  .catch((err: Error) => console.log(`Err Product.findById(id): Promise<[QueryResult, FieldPacket[]]>:\n${err}\n`));
 
   /*
   // Instead of just logging productId, wanna also log product{}
@@ -95,7 +102,7 @@ Export a callback function to be used by
 router.get('/', shopController.getIndex); in routes/shop.js 
 for rendering rootDir/views/shop/index.ejs
 */
-exports.getIndex = (req, res, next) => {
+export const getIndex: RequestHandler = (req, res, next) => {
   console.log(`Hosting of views/shop/index.ejs\nthrough router.get is in progress\nfor http://localhost:3005/\n`);
 
   /* using 'public static method' Product.fetchAll(): Promise
@@ -112,7 +119,7 @@ exports.getIndex = (req, res, next) => {
       prods: rows,
     });
   })
-  .catch((err) => console.log(`Error Product.fetchAll(): Promise:\n${err}\n`));
+  .catch((err: Error) => console.log(`Error Product.fetchAll(): Promise:\n${err}\n`));
 };
 
 /* 
@@ -120,21 +127,38 @@ Export a callback function to be used by
 router.get('/cart', shopController.getCart); in routes/shop.js 
 for rendering rootDir/views/shop/cart.ejs 
 */
-exports.getCart = (req, res, next) => {
+interface CartItem {
+    id: string;
+    title: string;
+    price: number;
+    description: string;
+    imageUrl: string;
+    qty: number;
+}
+
+interface CartProduct {
+    productData: CartItem;
+    qty: number;
+}
+
+exports.getCart = (req: Request, res: Response, next: NextFunction) => {
   console.log(`Hosting of views/shop/cart.ejs through router.get is in progress\nfor http://localhost:3005/cart\n`);
   
   /* i. Invoke Cart.getCart(cb) that accepts a pass-in callback function, we can then declare cart() => {} arrow function here */
-  Cart.getCart((cart) => {
+  Cart.getCart((cart: any) => { // Assuming this callback provides a cart{} object
     /* ii. Needing more product info too */
-    Product.fetchAll((fetchedProducts) => {
+    Product.fetchAll((fetchedProducts: any[]) => {
       /* iii. Prepare to store each matched product{} into empty cartProducts[]
       Thus, after cartProducts.push(eachProduct) below 
       We'll have a cartProducts[{}] for rendering on Frontend */
-      const cartProducts = [];
+      const cartProducts: CartProduct[] = [];
+
       /* iv. for loop of each product */
-      for (eachProduct of fetchedProducts) {
+      for (const eachProduct of fetchedProducts) {
         /* v. Matching eachProduct.id */
-        const cartProductData = cart.products.find(retrievedProduct => retrievedProduct.id === eachProduct.id);
+        const cartProductData = cart.products.find((retrievedProduct: any) => {
+            return retrievedProduct.id === eachProduct.id;
+        })
 
         /* vi. Check whether this product is in cart */
         if (cartProductData) {
@@ -160,12 +184,13 @@ Export a callback function to be used by
 router.post('/cart', ); in routes/shop.js
 for Accepting product attributes as req.body.fields via POST request 
 */
-exports.postCart = (req, res, next) => {
+exports.postCart = (req: Request, res: Response, next: NextFunction) => {
   /* req.body.productId because rootDir/views/shop/product-detail.ejs <input type="hidden" name="productId" value="<%= product.id %>"> */
   console.log(`Hosting of POST request handler for http://localhost:3005/cart\nreq.body.productId:`);
   const prodId = req.body.productId;
   /* Retrieve a product from products database */
-  Product.findById(prodId, (retrievedProduct) => {
+  Product.findById(prodId, (retrievedProduct: CartItem) => {
+    
     /* rootDir/models/cart.js 
     public static void method Cart.addProduct(id, productPrice) */
     Cart.addProduct(prodId, retrievedProduct.price);
@@ -179,7 +204,7 @@ exports.postCart = (req, res, next) => {
 /*
 Export a callback function to be used by routes/shop.js for deleting
 a specific product inside Cart */
-exports.postCartDeleteProduct = (req, res, next) => {
+export const postCartDeleteProduct: RequestHandler<{productId: string}> = (req, res, next) => {
   /* Need id & productPrice as pass-in params 
   when invoking Cart.deleteProduct(id, productPrice) */
   const prodId = req.body.productId;
@@ -188,7 +213,7 @@ exports.postCartDeleteProduct = (req, res, next) => {
   Invoking Product.findById(id, cb) 
   using this cb callback function to extend logic for finding out
   product.price */
-  Product.findById(prodId, (retrievedProduct) => {
+  Product.findById(prodId, (retrievedProduct: CartItem) => {
     Cart.deleteProduct(prodId, retrievedProduct.price);
     /* After deleting the specific product inside cart */
     res.status(301).redirect('/cart');
@@ -199,7 +224,7 @@ exports.postCartDeleteProduct = (req, res, next) => {
 Export a callback function to be used by routes/shop.js for 
 rendering rootDir/views/shop/orders.ejs
 */
-exports.getOrders = (req, res, next) => {
+exports.getOrders = (req: Request, res: Response, next: NextFunction) => {
   console.log(`Hosting of views/shop/orders.ejs through router.get is in progress\nfor http://localhost:3005/orders\n`);
   /*
     Main Node rootDir/app.js implements EJS Templating Engine
@@ -217,7 +242,7 @@ exports.getOrders = (req, res, next) => {
 Export a callback function to be used by routes/shop.js for 
 rendering rootDir/views/shop/checkout.ejs
 */
-exports.getCheckout = (req, res, next) => {
+exports.getCheckout = (req: Request, res: Response, next: NextFunction) => {
   console.log(`Hosting of views/shop/checkout.ejs through router.get is in progress\nfor http://localhost:3005/checkout\n`);
   /*
     Main Node rootDir/app.js implements EJS Templating Engine
