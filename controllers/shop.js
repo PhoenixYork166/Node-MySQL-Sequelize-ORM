@@ -43,29 +43,46 @@ exports.getProductDetail = (req, res, next) => {
   /* Extracting product Id using Server-side V8 Engine built-in req.params method 
   We can access productId here cuz we use productId as a param inside rootDir/routes/shop.js
   */
-  const productId = req.params.productId;
-  console.log(`http://localhost:3005/products/productUniqueId\nreq.params.productId Express Route is up`);
-  console.log(`req.params.productId from rootDir/routes/shop.js is being console logged:`);
-  console.log(productId);
-  console.log(`\n`);
-  
-  /* Refactored to using Promise-based pattern as we changed
-  Product.findById(id): Promise<[QueryResult, FieldPacket[]]> */
-  Product.findById(productId)
-  .then(([rows, fieldData]) => {
-      console.log(`Product.findById(productId)\n.then(([rows, fieldData]) => {...}\nrows = an array[]\nrows[0]:`);
-      console.log(rows[0]);
-      console.log(`\n`);
+  const prodId = req.params.productId;
 
-      /* Rendering rootDir/views/shop/product-detail.ejs view */
-      res.render('shop/product-detail', {
-        path: req.url ? req.url : '/products',
-        product: rows[0],
-        pageTitle: rows[0].title
-      })
-    }
-  )
-  .catch(err => console.log(`Err Product.findById(id): Promise<[QueryResult, FieldPacket[]]>:\n${err}\n`));
+  const route = 'http://localhost:3005/products/productUniqueId';
+  const template = 'rootDir/views/shop/product-detail.ejs';
+  const callbackName = `rootDir/controllers/shop.js\nexports.getProductDetail: RequestHandler = (req, res, next) => {}\n`;
+  console.log(`${route}\nis up\nproductId: ${prodId}\nTemplate:\n${template}\ncallbackName:\n${callbackName}`);
+  
+  /* sequelize.findById() has deprecated !!
+  sequelize.findByPk(prodId) instead!! */
+  // Approach1 - Product.findAll({where: {key: keyValue}}) 
+  Product.findAll({where: {id: prodId}})
+  .then((products)=>{
+    console.log(`Product.findAll({where: {id: prodId}}):\nproducts[0]`);
+    console.log(products[0]);
+
+    /* Rendering rootDir/views/shop/product-detail.ejs view */
+    res.render('shop/product-detail', {
+      product: products[0],
+      pageTitle: products[0].title,
+      path: req.url ? req.url : '/products'
+    })
+  })
+  .catch((err) => console.log(`Err Product.findAll({where: {id: prodId}}):\n${err})`));
+
+  // Approach2 - Product.findByPk(prodId)
+  // Product.findByPk(prodId)
+  // .then((eachProduct) => {
+  //     console.log(`Product.findById(${prodId})\n.then((eachProduct) => {...}\n:`);
+  //     console.log(eachProduct);
+  //     console.log(`\n`);
+
+  //     /* Rendering rootDir/views/shop/product-detail.ejs view */
+  //     res.render('shop/product-detail', {
+  //       product: eachProduct,
+  //       pageTitle: eachProduct.title,
+  //       path: req.url ? req.url : '/products'
+  //     })
+  //   }
+  // )
+  // .catch(err => console.log(`Err Product.findById(${prodId}): Promise<[QueryResult, FieldPacket[]]>:\n${err}\n`));  
 };
 
 /* 

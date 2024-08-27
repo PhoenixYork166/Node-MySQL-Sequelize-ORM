@@ -62,14 +62,6 @@ const Product = sequelize.define('product', {
     type: Sequelize.STRING,
     allowNull: false
   },
-  // createdAt: {
-  //   type: Sequelize.DATE,
-  //   allowNull: false
-  // },
-  // updatedAt: {
-  //   type: Sequelize.DATE,
-  //   allowNull: false
-  // }
 });
 
 module.exports = Product;

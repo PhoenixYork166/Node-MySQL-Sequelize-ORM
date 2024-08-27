@@ -53,9 +53,9 @@ app.use((error, req, res, next) => {
 sequelize.sync()
 .then(result => {
     console.log(`OK!\nSucceeded in connecting Node app to Database`);
-    console.log(`rootDir/app.js sequelize.sync() result:`);
-    console.log(result);
-    console.log(`\n`);
+    // console.log(`rootDir/app.js sequelize.sync() result:`);
+    // console.log(result);
+    // console.log(`\n`);
     const port = 3005;
     app.listen(port, () => {
         console.log(`Server running at http://localhost:${port}`);

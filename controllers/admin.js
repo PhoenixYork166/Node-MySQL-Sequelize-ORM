@@ -24,7 +24,8 @@ storing users input 'new product item' to data/products.json
 */
 exports.postAddProduct = (req, res, next) => {
   const route = 'http://localhost:3005/admin/add-product';
-  console.log(`Hosting POST request handler for http://localhost:3005/admin/add-product Node API is in progress\n`);
+  const callbackName = `rootDir/controllers/admin.js\nexports.postAddProduct: RequestHandler = (req, res, next) => {}\n`;
+  console.log(`Hosting POST request handler for ${route}\nNode API is in progress\n`);
 
   /* Best Practice to use ES6 Object Destructuring to destructure parameters from Browser req.body.params for easier implementation */
   const { title, price, description, imageUrl } = req.body;
@@ -40,12 +41,11 @@ exports.postAddProduct = (req, res, next) => {
     description: description,
   })
   .then((result) => {
-    console.log(`${route}\nresult:`);
+    console.log(`\n${route}\ncallbackName:\n${callbackName}\nOK! result:`);
     console.log(result);
-    console.log(`\n`);
   })
   .catch((err) => {
-    console.log(`${route}\nError:\n${err}\n`);
+    console.log(`\n${route}\ncallbackName:\n${callbackName}\nError:\n${err}\n`);
   });
 };
 
@@ -56,74 +56,106 @@ rendering rootDir/views/admin/edit-product.ejs &
 also passing in product information
 */
 exports.getEditProduct = (req, res, next) => {
-  console.log(
-    `Hosting views/admin/edit-product.ejs through router.get\nfor http://localhost:3005/admin/edit-product/:productId?edit=true\n`
-  );
+  /* Retrieving prodId from req.params.productId fetched from Frontend */
+  const prodId = req.params.productId;
+  const route = `http://localhost:3005/admin/edit-product/:${prodId}?edit=true`;
+  const method = 'router.get';
+  const template = 'rootDir/views/admin/edit-product.ejs';
+  const callbackName = `rootDir/controllers/admin.js\nexports.getEditProduct: RequestHandler = (req, res, next) => {}\n`;
+  console.log(`\nHosting ${template} through ${method}\non ${route}\ncallbackName:\n${callbackName}\n\n`);
+  
   /* Express built-in req.query.edit === 'true' */
   const editMode = req.query.edit;
-  console.log(`editMode: ${editMode}\n`);
+  console.log(`editMode on route\n${route} is:\n${editMode}\n`);
   if (!editMode) {
-    console.log(`req.query.edit !== true\nRedirecting to /\n`);
+    console.log(`Cannot edit route ${route}\nBecause req.query.edit !== true\nRedirecting to http://localhost:3005\n`);
     // Redirect to '/', if 'editMode !== true' undefined||false
     return res.status(303).redirect(303, "/");
   }
-  /* 
-    i. We'll need productId as a passed-in parameter for
-    public static void method 
-    Product.findById(id, cb) to accept prodId => 
-    Declare callback function to do backend logic
-
-    ii. Retrieving productId from Express route path
-    e.g. http://localhost:3005/admin/edit-product/:productId?edit=true 
-    We have a Dynamic segment rootDir/routes/admin.js 
-    router.get('/edit-product/:productId', adminController.getEditProduct);
-    */
-  const prodId = req.params.productId;
-  Product.findById(prodId, (retrievedProduct) => {
-    if (!retrievedProduct) {
-      return res.status(303).redirect(303, "/");
+  /* Otherwise, start editing a product item */
+  // Sequelize
+  Product.findByPk(prodId)
+  .then((eachProduct) => {
+    if (!eachProduct) {
+        return res.status(303).redirect(303, "/");
     }
-    res.render("admin/edit-product", {
-      path: req.url ? req.url : `/admin/edit-product`,
-      pageTitle: "Edit Product",
-      editing: editMode,
-      product: retrievedProduct,
-    });
+    res.render('admin/edit-product', {
+        product: eachProduct,
+        editing: editMode,
+        pageTitle: 'Edit Product',
+        path: req.url ? req.url : `/admin/edit-product`
+    })
+  })
+  .catch((err) => {
+    console.log(`\nFailed to retrieve a product item through route:\n${route}\nError logging:\n${err}\n`)
   });
+  // mysql2 connector
+//   Product.findById(prodId, (retrievedProduct) => {
+//     if (!retrievedProduct) {
+//       return res.status(303).redirect(303, "/");
+//     }
+//     res.render("admin/edit-product", {
+//       path: req.url ? req.url : `/admin/edit-product`,
+//       pageTitle: "Edit Product",
+//       editing: editMode,
+//       product: retrievedProduct,
+//     });
+//   });
 };
 
 /*
 For POST request to http://localhost:3005/admin/edit-product route
-Export a callback function to be used by routes/admin.js for storing edited product attributes into rootDir/data/products.json
+Export a callback function to be used by routes/admin.js
 */
 exports.postEditProduct = (req, res, next) => {
-  /* 
-    i. Fetch information for the product
-    ii. Create a new product instance populated with that fetched info => call Product.save() public void method
-    */
+  const redirectRoute = 'http://localhost:3005/admin/products';
   // Extracting a product.id from req.body when editing a product
   const prodId = req.body.productId;
   const updatedTitle = req.body.title;
-  const updatedImageUrl = req.body.imageUrl;
-  const updatedDescription = req.body.description;
   const updatedPrice = req.body.price;
+  const updatedDescription = req.body.description;
+  const updatedImageUrl = req.body.imageUrl;
 
-  /* Create new product{} object by Instantiating class Product */
-  const updatedProduct = new Product(
-    prodId,
-    updatedTitle,
-    updatedImageUrl,
-    updatedDescription,
-    updatedPrice
-  );
+  const route = `http://localhost:3005/admin/edit-product/${prodId}?edit=true`;
+  const template = 'rootDir/views/admin/edit-product.ejs';
+  const callbackName = `rootDir/controllers/admin.js\nexports.postEditProduct: RequestHandler = (req, res, next) => {}\n`;
 
-  console.log(
-    `updatedProduct.id: ${prodId}\nupdatedProduct.title: ${updatedTitle}\nupdatedProduct.imageUrl: ${updatedImageUrl}\nupdatedProduct.description: ${updatedDescription}\nupdatedProduct.price: ${updatedPrice}\n`
-  );
-  /* After class Instantiation => can invoke public void method updatedProduct.save() to over-write existing product {} */
-  updatedProduct.save();
-  /* After updatedProduct.save() => redirect to '/admin/product'*/
-  res.status(301).redirect("/admin/products");
+  if (!prodId || !updatedTitle || !updatedPrice || !updatedDescription || !updatedImageUrl) {
+    console.log(`\nFailed to retrieve req.body.params\nRedirecting to ${redirectRoute}`);
+    return res.status(501).redirect('/admin/products');
+  }
+
+  console.log(`${callbackName} req.body:`);
+  console.log(req.body);
+
+  /* Using Sequelize Product.method() model to update a product item */
+  Product.findByPk(prodId)
+  .then((retrievedProduct) => {  
+    if (!retrievedProduct) {
+        console.log(`\nError retrieving prodId: ${prodId}\n`);
+        res.status(404).json({ error: `Product NOT found `});
+    }
+
+    // Replacing retrieved productItem.keys with req.body.params
+    retrievedProduct.title = updatedTitle;
+    retrievedProduct.price = updatedPrice;
+    retrievedProduct.description = updatedDescription;
+    retrievedProduct.imageUrl = updatedImageUrl;  
+    
+    console.log(`\nroute:\n${route}\ntemplate:\n${template}\ncallbackName:\n${callbackName}\nhas just received an update request for item with prodId: ${prodId}\nupdatedTitle: ${updatedTitle}\nupdatedImageUrl: ${updatedImageUrl}\nupdatedDescription: ${updatedDescription}\nupdatedPrice: ${updatedPrice}\ncallbackName:\n${callbackName}\n\n`);
+    console.log(retrievedProduct);
+
+    return retrievedProduct.save();
+  })
+  .then((result) => {
+    console.log(`\nOK! Succeeded in updating product item:\nprodId: ${prodId}\nupdatedTitle: ${updatedTitle}\nupdatedPrice: ${updatedPrice}\nupdatedDescription: ${updatedDescription}\nupdatedImageUrl: ${updatedImageUrl}\n`);
+  })
+  .catch((err) => {
+    console.log(`\nFailed to fetch route:\n${route}\nusing callballName:\n${callbackName}\nError logging:\n${err}\n`);
+    // res.status(501).json({ error: "Failed to update product" });
+  });
+  /* After updatedProduct.save() => redirect to 'views/admin/product'*/
+  res.status(301).redirect('/admin/products');
 };
 
 /* 
@@ -132,38 +164,38 @@ Export a callback function to be used by routes/admin.js for
 rendering rootDir/views/admin/products.ejs
 */
 exports.getProducts = (req, res, next) => {
-  console.log(
-    `Hosting views/admin/products.ejs through router.get is in progress\nfor http://localhost:3005/admin/products\n`
-  );
+  const route = 'http://localhost:3005/admin/products';
+  const template = 'rootDir/views/admin/products.ejs';
+  const method = 'router.get';
+  const callbackName = `rootDir/controllers/admin.js\nexports.getProducts: RequestHandler = (req, res, next) => {}\n`;
 
-  /* 
-    using 'public static void method' Product.fetchAll(cb): void
-    to retrieve products[{}] stored in data/products.json file 
-    */
-  Product.fetchAll((products) => {
-    /* Calling back products stored in ./routes/shop.js
-        router.get('/admin/products', adminController.getProducts); */
-    console.log(`routes/admin.js\nadminController.getProducts:`);
-    console.log(products);
-    console.log(`\n`);
+  console.log(`\nHosting template:\n${template}\nthrough ${method} is in progress\nfor ${route}\ncallbackName:\n${callbackName}`);
 
-    /*
-        Main Node rootDir/app.js implements EJS Templating Engine
-        app.set('view engine', 'ejs');
-        within this module => res.render() EJS templates
-        rendering rootDir/views/admin/products.ejs template
-        */
-    res.render("admin/products", {
-      path: req.url ? req.url : "/admin/products",
-      pageTitle: "Products (admin-view)",
-      prods: products,
-      /* These attributes are ONLY necessary when using Handlebars
-        hasProducts: products.length > 0,
-        activeShop: true,
-        productCSS: true
-        */
-    });
-  });
+  /* using 'public static void method' Product.fetchAll(cb): void to retrieve products[{}] stored in data/products.json file 
+  */
+  // Using Sequelize
+  Product.findAll()
+  .then((products) => {
+    console.log(`\n${callbackName}OK!\nProduct.findAll().then((products) => console.log(products)):`);
+
+    res.render('admin/products', {
+        prods: products,
+        pageTitle: 'Products (admin-view)',
+        path: req.url ? req.url : 'admin/products'
+    })
+  })
+  // MySQL2
+//   Product.fetchAll((products) => {
+//     console.log(`${callbackName}\nProduct.findAll().then((products) => console.log(products)):`);
+//     console.log(products);
+//     console.log(`\n`);
+
+//     res.render('admin/products', {
+//       path: req.url ? req.url : 'admin/products',
+//       pageTitle: 'Products (admin-view)',
+//       prods: products
+//     });
+//   });
 };
 
 /*
