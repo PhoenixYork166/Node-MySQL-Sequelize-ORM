@@ -1,9 +1,11 @@
 // import class Sequelize from installed npm module
 const Sequelize = require('sequelize');
 
-const sequelize = new Sequelize('node-complete', 'root', 'rootGor1', {
-    dialect: 'mysql',
-    host: 'localhost'
+const sequelize = new Sequelize('node-complete', 
+    'root', 
+    'rootGor1', {
+        dialect: 'mysql',
+        host: 'localhost'
 });
 
 module.exports = sequelize;

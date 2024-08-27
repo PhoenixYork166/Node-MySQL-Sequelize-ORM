@@ -1,7 +1,7 @@
 {
-  "name": "learn-nodejs-2024",
+  "name": "learn-modern-nodejs",
   "version": "1.0.0",
-  "description": "Learning Node.js 2024",
+  "description": "Node.js Express.js Sequelize",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

@@ -4,8 +4,14 @@ const path = require('path');
 // const bodyParser = require('body-parser');
 const rootDir = require('./util/path');
 const errorController = require('./controllers/error');
+
+/* Using Sequelize */
 const sequelize = require('./util/database');
+
+/* When using MySQL connection pool */
 // const db = require('./util/database');
+
+/* Instantiating Express app */
 const app = express();
 console.log(`root directory is:\n${rootDir}`);
 
@@ -58,7 +64,4 @@ sequelize.sync()
 .catch((err) => {
     console.log(`Error rootDir/app.js sequelize.sync()\n${err}\n`);
 });
-
-
-
 

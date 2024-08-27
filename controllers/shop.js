@@ -14,26 +14,23 @@ router.get('/products', shopController.getProducts); in routes/shop.js
 for rendering rootDir/views/shop/product-list.ejs
 */
 exports.getProducts = (req, res, next) => {
-  /* This allows us to hook into this Funnel 
-  through which the HTTP request to send */
-  console.log(`Hosting of views/shop/product-list.ejs\nthrough router.get is in progress\nfor http://localhost:3005/products\n`);
+  const template = 'views/shop/product-list.ejs';
+  const method = 'router.get';
+  const route = 'http://localhost:3005/products';
+  const callbackName = `rootDir/controllers/shop.js\nexports.getProducts: RequestHandler = (req, res, next) => {}\n`;
+  console.log(`Hosting of ${template}\nthrough ${method} is in progress\nfor ${route}\ncallbackName:\n${callbackName}`);
 
-  /* using 'public static method' Product.fetchAll(): Promise
-  to retrieve products[{}] stored in MySQL 
-  Product.fetchAll(): Promise is declared inside rootDir/models/product.js */
-  Product.fetchAll()
-  .then(([rows, fieldData]) => {
-    /* Main Node rootDir/app.js implements EJS Templating Engine
-    app.set('view engine', 'ejs');
-    within this module => res.render() EJS templates
-    rendering rootDir/views/shop/product-list.ejs template */
+  Product.findAll()
+  .then(products => {
     res.render('shop/product-list', {
       path: req.url ? req.url : '/products',
       pageTitle: 'All Products',
-      prods: rows,
+      prods: products
     });
   })
-  .catch((err) => console.log(`Error Product.fetchAll(): Promise:\n${err}\n`));
+  .catch((err) => {
+    console.log(`Error occurred:\n${err}\nWhen rendering ${template}\non route \n${route}\nCallback name:\n${callbackName}\n`);
+  });
 };
 
 /* 
@@ -69,25 +66,6 @@ exports.getProductDetail = (req, res, next) => {
     }
   )
   .catch(err => console.log(`Err Product.findById(id): Promise<[QueryResult, FieldPacket[]]>:\n${err}\n`));
-
-  /*
-  // Instead of just logging productId, wanna also log product{}
-  // Using public static void method Product.findById() without instantiation 
-  // Product.findById(productId, callbackToGetProduct)
-  
-  Product.findById(productId, product => {
-    console.log(`product found using public static void method without class instantiation\nProduct.findById(productId, product => {...})`);
-    console.log(product);
-    console.log(`\n`);
-    // Rendering rootDir/views/shop/product-detail.ejs view
-    res.render('shop/product-detail', {
-      // product = the product retrieved via public static void method Product.findById() defined in rootDir/models/product.js 
-      path: req.url ? req.url : '/products',
-      product: product,
-      pageTitle: product.title
-    });
-  });
-  */
 };
 
 /* 
@@ -96,23 +74,24 @@ router.get('/', shopController.getIndex); in routes/shop.js
 for rendering rootDir/views/shop/index.ejs
 */
 exports.getIndex = (req, res, next) => {
-  console.log(`Hosting of views/shop/index.ejs\nthrough router.get is in progress\nfor http://localhost:3005/\n`);
+  const template = 'views/shop/index.ejs';
+  const route = 'http://localhost:3005/';
+  const method = 'router.get';
+  const callbackName = `rootDir/controllers/shop.js\nexports.getIndex: RequestHandler = (req, res, next) => {}\n`;
+  console.log(`Hosting of ${template}\nthrough ${method} is in progress\non route:\n${route}\n`);
 
-  /* using 'public static method' Product.fetchAll(): Promise
-  to retrieve products[{}] stored in MySQL */
-  Product.fetchAll()
-  .then(([rows, fieldData]) => {
-    /* Main Node rootDir/app.js implements EJS Templating Engine
-    app.set('view engine', 'ejs');
-    within this module => res.render() EJS templates
-    rendering rootDir/views/shop/index.ejs template */
+  /* Using Sequelize connector */
+  Product.findAll()
+  .then(products => {
     res.render('shop/index', {
-      path: req.url ? req.url : '/',
+      prods: products,
       pageTitle: 'Shop',
-      prods: rows,
+      path: '/'
     });
   })
-  .catch((err) => console.log(`Error Product.fetchAll(): Promise:\n${err}\n`));
+  .catch((err) => {
+    console.log(`Error occurred:\n${err}\nWhen rendering ${template}\non route \n${route}\ncallbackName:\n${callbackName}`);
+  });
 };
 
 /* 

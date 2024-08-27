@@ -3,15 +3,43 @@ const Sequelize = require('sequelize');
 
 // Import instantiated 'sequelize' JavaScript object
 const sequelize = require('../util/database');
+const { timeStamp } = require('console');
 
-// Define Product model by importing instantiated JavaScript object, instead of 'class Product'
-/* sequelize.define(
+/* Using Sequelize to define a Product model */
+/* From Documentations 
+const { Sequelize, DataTypes } = require('sequelize');
+const sequelize = new Sequelize('sqlite::memory:');
+
+const User = sequelize.define(
+  'User',
+  {
+    // Model attributes are defined here
+    firstName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    lastName: {
+      type: DataTypes.STRING,
+      // allowNull defaults to true
+    },
+  },
+  {
+    // Other model options go here
+  },
+);
+
+// `sequelize.define` also returns the model
+console.log(User === sequelize.models.User); // true
+*/
+
+/* Low-level implementations
+sequelize.define(
   modelName: string,
   attributes: sequelize.DefineModelAttributes<T>,
   options?: sequelize.DefineOptions<T>
 ): sequelize.Model<TInstance, TAttributes>
 */
-const Product = sequelize.define('products', {
+const Product = sequelize.define('product', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -33,7 +61,15 @@ const Product = sequelize.define('products', {
   imageUrl: {
     type: Sequelize.STRING,
     allowNull: false
-  }
+  },
+  // createdAt: {
+  //   type: Sequelize.DATE,
+  //   allowNull: false
+  // },
+  // updatedAt: {
+  //   type: Sequelize.DATE,
+  //   allowNull: false
+  // }
 });
 
 module.exports = Product;
