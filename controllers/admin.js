@@ -42,7 +42,8 @@ exports.postAddProduct = (req, res, next) => {
   })
   .then((result) => {
     console.log(`\n${route}\ncallbackName:\n${callbackName}\nOK! result:`);
-    console.log(result);
+    // Redirecting to rootDir/views/admin/products.ejs
+    res.status(200).redirect('/admin/products')
   })
   .catch((err) => {
     console.log(`\n${route}\ncallbackName:\n${callbackName}\nError:\n${err}\n`);
@@ -89,18 +90,6 @@ exports.getEditProduct = (req, res, next) => {
   .catch((err) => {
     console.log(`\nFailed to retrieve a product item through route:\n${route}\nError logging:\n${err}\n`)
   });
-  // mysql2 connector
-//   Product.findById(prodId, (retrievedProduct) => {
-//     if (!retrievedProduct) {
-//       return res.status(303).redirect(303, "/");
-//     }
-//     res.render("admin/edit-product", {
-//       path: req.url ? req.url : `/admin/edit-product`,
-//       pageTitle: "Edit Product",
-//       editing: editMode,
-//       product: retrievedProduct,
-//     });
-//   });
 };
 
 /*
@@ -148,11 +137,11 @@ exports.postEditProduct = (req, res, next) => {
     return retrievedProduct.save();
   })
   .then((result) => {
-    console.log(`\nOK! Succeeded in updating product item:\nprodId: ${prodId}\nupdatedTitle: ${updatedTitle}\nupdatedPrice: ${updatedPrice}\nupdatedDescription: ${updatedDescription}\nupdatedImageUrl: ${updatedImageUrl}\n`);
+    console.log(`\nOK! Succeeded in updating product item:\nprodId: ${prodId}\nupdatedTitle: ${updatedTitle}\nupdatedPrice: ${updatedPrice}\nupdatedDescription: ${updatedDescription}\nupdatedImageUrl: ${updatedImageUrl}\nProduct Updated!\n`);
+    res.status(200).redirect('/admin/products');
   })
   .catch((err) => {
     console.log(`\nFailed to fetch route:\n${route}\nusing callballName:\n${callbackName}\nError logging:\n${err}\n`);
-    // res.status(501).json({ error: "Failed to update product" });
   });
   /* After updatedProduct.save() => redirect to 'views/admin/product'*/
   res.status(301).redirect('/admin/products');
@@ -171,9 +160,7 @@ exports.getProducts = (req, res, next) => {
 
   console.log(`\nHosting template:\n${template}\nthrough ${method} is in progress\nfor ${route}\ncallbackName:\n${callbackName}`);
 
-  /* using 'public static void method' Product.fetchAll(cb): void to retrieve products[{}] stored in data/products.json file 
-  */
-  // Using Sequelize
+  /* Using Sequelize */
   Product.findAll()
   .then((products) => {
     console.log(`\n${callbackName}OK!\nProduct.findAll().then((products) => console.log(products)):`);
@@ -184,30 +171,39 @@ exports.getProducts = (req, res, next) => {
         path: req.url ? req.url : 'admin/products'
     })
   })
-  // MySQL2
-//   Product.fetchAll((products) => {
-//     console.log(`${callbackName}\nProduct.findAll().then((products) => console.log(products)):`);
-//     console.log(products);
-//     console.log(`\n`);
-
-//     res.render('admin/products', {
-//       path: req.url ? req.url : 'admin/products',
-//       pageTitle: 'Products (admin-view)',
-//       prods: products
-//     });
-//   });
 };
 
 /*
-For POST request to http://localhost:3005/admin/delete-product route
+For POST request to  route
 Export a callback function to be used by routes/admin.js for
 deleting a specific product from rootDir/data/products.json
 */
 exports.postDeleteProduct = (req, res, next) => {
+  // Retrieving productUnqiueId from req.body.productId
   const prodId = req.body.productId;
-  /* publicly invoking Product.deleteById(id) => 
-    pass-in prodId received from req.body */
-  Product.deleteById(prodId);
-  /* After Product.deleteById(prodId) is complete */
-  res.status(301).redirect("/admin/products");
+  const method = 'router.post';
+  const route = `http://localhost:3005/admin/delete-product/${prodId}`;
+  const callbackName = `rootDir/controllers/admin.js\ncallbackName:\n$exports.postDeleteProduct: RequestHandler = (req, res, next)\n`;
+
+  console.log(`\nOK!\n${route} has just received a ${method} request for deleting product (prodId: ${prodId})\nvia ${callbackName}\n`);
+
+  Product.findByPk(prodId)
+  .then((retrievedProduct) => {
+    if (!retrievedProduct) {
+        console.log(`\nError retrieving prodId: ${prodId}\n`);
+        res.status(404).json({ error: `Product NOT found `});
+    } else {
+        console.log(`Retrieved Product:\n${retrievedProduct}`);
+        // Destroy the specified product item
+        return retrievedProduct.destroy();
+    }    
+  })
+  .then((result) => {
+    console.log(`\nDESTROYED PRODUCT:\nprodId: ${prodId}`);
+  })
+  .catch((err) => {
+    console.log(`\nFailed to fetch route:\n${route}\nusing callballName:\n${callbackName}\nError logging:\n${err}\n`);
+  });
+  /* After deleting a specific product => Redirect to admin portal*/
+  res.status(301).redirect('/admin/products');
 };
