@@ -1,7 +1,6 @@
 // import Sequelize class
 const Sequelize = require('sequelize');
-
-// import sequelize connection from database
+// Import sequelize connection from database
 const sequelize = require('../util/database');
 const { timeStamp } = require('console');
 
@@ -32,36 +31,22 @@ const User = sequelize.define(
 console.log(User === sequelize.models.User); // true
 */
 
-/* Low-level implementations
-sequelize.define(
-  modelName: string,
-  attributes: sequelize.DefineModelAttributes<T>,
-  options?: sequelize.DefineOptions<T>
-): sequelize.Model<TInstance, TAttributes>
-*/
-const Product = sequelize.define('product', {
+// user model
+const User = sequelize.define('user', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true
   },
-  title: {
+  name: {
     type: Sequelize.STRING,
     allowNull: false
   },
-  price: {
-    type: Sequelize.DOUBLE,
-    allowNull: false
-  },
-  description: {
-    type: Sequelize.TEXT,
-    allowNull: false
-  },
-  imageUrl: {
+  email: {
     type: Sequelize.STRING,
     allowNull: false
   },
 });
 
-module.exports = Product;
+module.exports = User;

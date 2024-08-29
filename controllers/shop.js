@@ -53,36 +53,36 @@ exports.getProductDetail = (req, res, next) => {
   /* sequelize.findById() has deprecated !!
   sequelize.findByPk(prodId) instead!! */
   // Approach1 - Product.findAll({where: {key: keyValue}}) 
-  Product.findAll({where: {id: prodId}})
-  .then((products)=>{
-    console.log(`Product.findAll({where: {id: prodId}}):\nproducts[0]`);
-    console.log(products[0]);
+  // Product.findAll({where: {id: prodId}})
+  // .then((products)=>{
+  //   console.log(`Product.findAll({where: {id: prodId}}):\nproducts[0]`);
+  //   console.log(products[0]);
 
-    /* Rendering rootDir/views/shop/product-detail.ejs view */
-    res.render('shop/product-detail', {
-      product: products[0],
-      pageTitle: products[0].title,
-      path: req.url ? req.url : '/products'
-    })
-  })
-  .catch((err) => console.log(`Err Product.findAll({where: {id: prodId}}):\n${err})`));
+  //   /* Rendering rootDir/views/shop/product-detail.ejs view */
+  //   res.render('shop/product-detail', {
+  //     product: products[0],
+  //     pageTitle: products[0].title,
+  //     path: req.url ? req.url : '/products'
+  //   })
+  // })
+  // .catch((err) => console.log(`Err Product.findAll({where: {id: prodId}}):\n${err})`));
 
   // Approach2 - Product.findByPk(prodId)
-  // Product.findByPk(prodId)
-  // .then((eachProduct) => {
-  //     console.log(`Product.findById(${prodId})\n.then((eachProduct) => {...}\n:`);
-  //     console.log(eachProduct);
-  //     console.log(`\n`);
+  Product.findByPk(prodId)
+  .then((eachProduct) => {
+      console.log(`Product.findById(${prodId})\n.then((eachProduct) => {...}\n:`);
+      console.log(eachProduct);
+      console.log(`\n`);
 
-  //     /* Rendering rootDir/views/shop/product-detail.ejs view */
-  //     res.render('shop/product-detail', {
-  //       product: eachProduct,
-  //       pageTitle: eachProduct.title,
-  //       path: req.url ? req.url : '/products'
-  //     })
-  //   }
-  // )
-  // .catch(err => console.log(`Err Product.findById(${prodId}): Promise<[QueryResult, FieldPacket[]]>:\n${err}\n`));  
+      /* Rendering rootDir/views/shop/product-detail.ejs view */
+      res.render('shop/product-detail', {
+        product: eachProduct,
+        pageTitle: eachProduct.title,
+        path: req.url ? req.url : '/products'
+      })
+    }
+  )
+  .catch(err => console.log(`Err Product.findById(${prodId}): Promise<[QueryResult, FieldPacket[]]>:\n${err}\n`));  
 };
 
 /* 
