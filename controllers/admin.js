@@ -26,20 +26,27 @@ exports.postAddProduct = (req, res, next) => {
   const route = 'http://localhost:3005/admin/add-product';
   const callbackName = `rootDir/controllers/admin.js\nexports.postAddProduct: RequestHandler = (req, res, next) => {}\n`;
   console.log(`Hosting POST request handler for ${route}\nNode API is in progress\n`);
-
   /* Best Practice to use ES6 Object Destructuring to destructure parameters from Browser req.body.params for easier implementation */
   const { title, price, description, imageUrl } = req.body;
-
   console.log(`Just received a POST request from\n${route}\n{ "req.body.title": ${title}, "req.body.price": ${price}, "req.body.description": ${description}, "req.body.imageUrl": ${imageUrl} }\n`);
 
-  /* // Sequelize official docs 'create' method to immediately save an item into MySQL https://sequelize.org/docs/v6/core-concepts/model-instances/ */
-  Product.create({
-    /* id is automatically incremental */
+  /* Approach.1 Association Magic Method => User.hasMany(Product) in app.js */
+  req.user.createProduct({
     title: title,
     price: price,
     imageUrl: imageUrl,
     description: description,
   })
+  /* Approach.2 Sequelize official docs 'create' method to immediately save an item into MySQL https://sequelize.org/docs/v6/core-concepts/model-instances/ */
+  // const userId = req.user.id;
+  // Product.create({
+  //   // id is automatically incremental
+  //   title: title,
+  //   price: price,
+  //   imageUrl: imageUrl,
+  //   description: description,
+  //   userId: userId
+  // })
   .then((result) => {
     console.log(`\n${route}\ncallbackName:\n${callbackName}\nOK! result:`);
     // Redirecting to rootDir/views/admin/products.ejs
@@ -51,12 +58,14 @@ exports.postAddProduct = (req, res, next) => {
 };
 
 /*
-For GET request to http://localhost:3005/admin/edit-product/:productId route
+For GET request to http://localhost:3005/admin/edit-product/:productId?edit=true
 Export a callback function to be used by routes/admin.js for
 rendering rootDir/views/admin/edit-product.ejs &
 also passing in product information
 */
 exports.getEditProduct = (req, res, next) => {
+  /* Express built-in req.query.edit === 'true' */
+  const editMode = req.query.edit;
   /* Retrieving prodId from req.params.productId fetched from Frontend */
   const prodId = req.params.productId;
   const route = `http://localhost:3005/admin/edit-product/:${prodId}?edit=true`;
@@ -65,35 +74,51 @@ exports.getEditProduct = (req, res, next) => {
   const callbackName = `rootDir/controllers/admin.js\nexports.getEditProduct: RequestHandler = (req, res, next) => {}\n`;
   console.log(`\nHosting ${template} through ${method}\non ${route}\ncallbackName:\n${callbackName}\n\n`);
   
-  /* Express built-in req.query.edit === 'true' */
-  const editMode = req.query.edit;
-  console.log(`editMode on route\n${route} is:\n${editMode}\n`);
+  console.log(`\neditMode on route\n${route} is:\n${editMode}\n`);
   if (!editMode) {
     console.log(`Cannot edit route ${route}\nBecause req.query.edit !== true\nRedirecting to http://localhost:3005\n`);
     // Redirect to '/', if 'editMode !== true' undefined||false
     return res.status(303).redirect(303, "/");
   }
-  /* Otherwise, start editing a product item */
-  // Sequelize
-  Product.findByPk(prodId)
-  .then((eachProduct) => {
-    if (!eachProduct) {
-        return res.status(303).redirect(303, "/");
+  /* Approach.1 Sequelize Magic method req.user.getProducts() */
+  req.user.getProducts({ where: { id: prodId } })
+  .then((products) => {
+    const product = products[0];
+    if (!product) {
+      console.error(`\nCould not find the product...\nRedirecting to /\n`);
+      return res.status(303).redirect(303, "/");
     }
     res.render('admin/edit-product', {
-        product: eachProduct,
-        editing: editMode,
-        pageTitle: 'Edit Product',
-        path: req.url ? req.url : `/admin/edit-product`
+      product: product,
+      editing: editMode,
+      pageTitle: 'Edit Product',
+      path: req.url ? req.url : `/admin/edit-product`
     })
   })
   .catch((err) => {
     console.log(`\nFailed to retrieve a product item through route:\n${route}\nError logging:\n${err}\n`)
   });
+  /* Approach.2 Product model Sequelize .findByPk() method */
+  // Product.findByPk(prodId)
+  // .then((eachProduct) => {
+  //   if (!eachProduct) {
+  //       console.error(`\nCould not find the product...\nRedirecting to /\n`);
+  //       return res.status(303).redirect(303, "/");
+  //   }
+  //   res.render('admin/edit-product', {
+  //       product: eachProduct,
+  //       editing: editMode,
+  //       pageTitle: 'Edit Product',
+  //       path: req.url ? req.url : `/admin/edit-product`
+  //   })
+  // })
+  // .catch((err) => {
+  //   console.log(`\nFailed to retrieve a product item through route:\n${route}\nError logging:\n${err}\n`)
+  // });
 };
 
 /*
-For POST request to http://localhost:3005/admin/edit-product route
+For POST request to http://localhost:3005/admin/edit-product/${prodId}?edit=true route
 Export a callback function to be used by routes/admin.js
 */
 exports.postEditProduct = (req, res, next) => {
@@ -117,7 +142,7 @@ exports.postEditProduct = (req, res, next) => {
   console.log(`${callbackName} req.body:`);
   console.log(req.body);
 
-  /* Using Sequelize Product.method() model to update a product item */
+  /* Sequelize Product.findByPk() method */
   Product.findByPk(prodId)
   .then((retrievedProduct) => {  
     if (!retrievedProduct) {
@@ -160,8 +185,10 @@ exports.getProducts = (req, res, next) => {
 
   console.log(`\nHosting template:\n${template}\nthrough ${method} is in progress\nfor ${route}\ncallbackName:\n${callbackName}`);
 
-  /* Using Sequelize */
-  Product.findAll()
+  /* Approach.1 Sequelize req.user.getProducts() Magic Method */
+  req.user.getProducts()
+  /* Approach.2 Sequelize Product.findAll() method */
+  //Product.findAll()
   .then((products) => {
     console.log(`\n${callbackName}OK!\nProduct.findAll().then((products) => console.log(products)):`);
 
@@ -171,6 +198,7 @@ exports.getProducts = (req, res, next) => {
         path: req.url ? req.url : 'admin/products'
     })
   })
+  .catch(err => console.log(`\nError loading ${route}\nfor hosting template:\n${template}\nError: ${err}\n`));
 };
 
 /*

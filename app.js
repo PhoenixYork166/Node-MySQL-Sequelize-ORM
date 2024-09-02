@@ -9,6 +9,8 @@ const errorController = require('./controllers/error');
 const sequelize = require('./util/database');
 const Product = require('./models/product');
 const User = require('./models/user');
+const Cart = require('./models/cart');
+const CartItem = require('./models/cart-item');
 
 /* When using MySQL connection pool */
 // const db = require('./util/database');
@@ -38,7 +40,7 @@ user is only available if our Node app starts listening for req */
 app.use((req, res, next) => {
     User.findByPk(1) // retrieving a user from db
     .then(user => {
-        // Storing user retrieved from db into a request
+        // Storing user retrieved from db into a REQ
         // req.user = Sequelize object with values stored in db
         // user now has all utility methods e.g. .destroy()
         req.user = user;
@@ -64,9 +66,19 @@ app.use((error, req, res, next) => {
     });
 })
 
-// Model Associations before Syncing Sequelize
-Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
+// Model Associations before Syncing Sequelize to allow Magic methods
+// User-Product One-To-Many Relationship
 User.hasMany(Product);
+// Complementing User.hasMany(Product) relationship by specifying the other side of relationship
+// onDelete: 'CASCADE' => when one User is deleted => all associated Product records auto-deleted
+Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
+
+// User-Cart One-To-One Relationship
+User.hasOne(Cart);
+// Complementing on the other side
+Cart.belongsTo(User);
+Cart.belongsToMany(Product, { through: CartItem }); // One Cart holds many products
+Product.belongsToMany(Cart, { through: CartItem }); // One Product can be part of many Carts
 
 // All Error Handling middleware must be above sequelize.sync()
 sequelize
