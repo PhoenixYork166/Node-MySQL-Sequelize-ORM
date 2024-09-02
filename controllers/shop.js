@@ -18,7 +18,7 @@ exports.getProducts = (req, res, next) => {
   const method = 'router.get';
   const route = 'http://localhost:3005/products';
   const callbackName = `rootDir/controllers/shop.js\nexports.getProducts: RequestHandler = (req, res, next) => {}\n`;
-  console.log(`Hosting of ${template}\nthrough ${method} is in progress\nfor ${route}\ncallbackName:\n${callbackName}`);
+  console.log(`\nHosting of ${template}\nthrough ${method} is in progress\nfor ${route}\ncallbackName:\n${callbackName}`);
 
   Product.findAll()
   .then(products => {
@@ -29,7 +29,7 @@ exports.getProducts = (req, res, next) => {
     });
   })
   .catch((err) => {
-    console.log(`Error occurred:\n${err}\nWhen rendering ${template}\non route \n${route}\nCallback name:\n${callbackName}\n`);
+    console.log(`\nError for ${callbackName}\n${err}\n`);
   });
 };
 
@@ -45,7 +45,7 @@ exports.getProductDetail = (req, res, next) => {
   */
   const prodId = req.params.productId;
 
-  const route = 'http://localhost:3005/products/productUniqueId';
+  const route = `http://localhost:3005/products/${prodId}`;
   const template = 'rootDir/views/shop/product-detail.ejs';
   const callbackName = `rootDir/controllers/shop.js\nexports.getProductDetail: RequestHandler = (req, res, next) => {}\n`;
   console.log(`${route}\nis up\nproductId: ${prodId}\nTemplate:\n${template}\ncallbackName:\n${callbackName}`);
@@ -70,7 +70,7 @@ exports.getProductDetail = (req, res, next) => {
   // Approach2 - Product.findByPk(prodId)
   Product.findByPk(prodId)
   .then((eachProduct) => {
-      console.log(`Product.findById(${prodId})\n.then((eachProduct) => {...}\n:`);
+      console.log(`\nProduct.findByPk(${prodId})\n.then((eachProduct) => {...}\n:`);
       console.log(eachProduct);
       console.log(`\n`);
 
@@ -82,7 +82,7 @@ exports.getProductDetail = (req, res, next) => {
       })
     }
   )
-  .catch(err => console.log(`Err Product.findById(${prodId}): Promise<[QueryResult, FieldPacket[]]>:\n${err}\n`));  
+  .catch(err => console.log(`\nError for ${callbackName}\n${err}\n`));  
 };
 
 /* 
@@ -95,7 +95,7 @@ exports.getIndex = (req, res, next) => {
   const route = 'http://localhost:3005/';
   const method = 'router.get';
   const callbackName = `rootDir/controllers/shop.js\nexports.getIndex: RequestHandler = (req, res, next) => {}\n`;
-  console.log(`Hosting of ${template}\nthrough ${method} is in progress\non route:\n${route}\n`);
+  console.log(`\nHosting of ${template}\nthrough ${method} is in progress\non route:\n${route}\n`);
 
   /* Using Sequelize connector */
   Product.findAll()
@@ -107,7 +107,7 @@ exports.getIndex = (req, res, next) => {
     });
   })
   .catch((err) => {
-    console.log(`Error occurred:\n${err}\nWhen rendering ${template}\non route \n${route}\ncallbackName:\n${callbackName}`);
+    console.log(`\nError occurred:\n${err}\nWhen rendering ${template}\non route \n${route}\ncallbackName:\n${callbackName}`);
   });
 };
 
@@ -117,37 +117,30 @@ router.get('/cart', shopController.getCart); in routes/shop.js
 for rendering rootDir/views/shop/cart.ejs 
 */
 exports.getCart = (req, res, next) => {
-  console.log(`Hosting of views/shop/cart.ejs through router.get is in progress\nfor http://localhost:3005/cart\n`);
-  
-  /* i. Invoke Cart.getCart(cb) that accepts a pass-in callback function, we can then declare cart() => {} arrow function here */
-  Cart.getCart((cart) => {
-    /* ii. Needing more product info too */
-    Product.fetchAll((fetchedProducts) => {
-      /* iii. Prepare to store each matched product{} into empty cartProducts[]
-      Thus, after cartProducts.push(eachProduct) below 
-      We'll have a cartProducts[{}] for rendering on Frontend */
-      const cartProducts = [];
-      /* iv. for loop of each product */
-      for (eachProduct of fetchedProducts) {
-        /* v. Matching eachProduct.id */
-        const cartProductData = cart.products.find(retrievedProduct => retrievedProduct.id === eachProduct.id);
+  const template = `views/shop/cart.ejs`;
+  const route = `http://localhost:3005/cart`;
+  const method = `router.get`;
+  console.log(`\nHosting of ${template} through ${method} is in progress\n${route}\n`);
 
-        /* vi. Check whether this product is in cart */
-        if (cartProductData) {
-          /* vii. push for-looped single product{} into cartProducts[] above */
-          cartProducts.push({
-            productData: eachProduct, 
-            qty: cartProductData.qty
-          });
-        }
-      }
-      /* viii. Sending cartProducts[{},{}] as a key-pair to our view */
-      res.render('shop/cart', {
-        path: req.url ? req.url : '/cart',
-        pageTitle: 'Your Cart',
-        products: cartProducts
+  req.user.getCart()
+  .then((retrievedCart) => {
+    if (!retrievedCart) {
+      console.error(`\nFailed req.user.getCart()\nRedirecting to /\n`);
+      return res.status(303).redirect(303, "/");
+    } else {
+      return retrievedCart.getProducts()
+      .then((products) => {
+        res.render('shop/cart', {
+          products: products,
+          pageTitle: 'Your Cart',
+          path: req.url ? req.url : `/cart`
+        })
       })
-    });
+      .catch(err => console.log(err));
+    }
+  })
+  .catch((err) => {
+    console.log(`\nFailed getCart:\nCart.getCart({ where: {req.user.id: ${req.user.id} })\n${route}\nError logging:\n${err}\n`)
   });
 };
 
@@ -158,18 +151,46 @@ for Accepting product attributes as req.body.fields via POST request
 */
 exports.postCart = (req, res, next) => {
   /* req.body.productId because rootDir/views/shop/product-detail.ejs <input type="hidden" name="productId" value="<%= product.id %>"> */
-  console.log(`Hosting of POST request handler for http://localhost:3005/cart\nreq.body.productId:`);
   const prodId = req.body.productId;
-  /* Retrieve a product from products database */
-  Product.findById(prodId, (retrievedProduct) => {
-    /* rootDir/models/cart.js 
-    public static void method Cart.addProduct(id, productPrice) */
-    Cart.addProduct(prodId, retrievedProduct.price);
-  });
-  // console.log(prodId);
-  // console.log(`\n`);
-  /* After POST prodId (req.body.productId) to Backend */
-  res.status(301).redirect('/cart');
+  let fetchedCart;
+  let newQuantity = 1;
+  const method = `router.post`;
+  const route = `http://localhost:3005/cart`;
+  const callbackName = `\nrootDir/controllers/shop.js\nexports.postCart: RequestHandler = (req, res, next) => {}\n`;
+  console.log(`\nMethod: ${method} to\n${route} for adding an item to cart\n${callbackName}\n`);
+  
+  /* Accessing Cart using Magic method */
+  req.user
+    .getCart()
+    .then((retrievedCart) => {
+      fetchedCart = retrievedCart; // hoisting req.user.getCart() result to global fetchedCart
+      // Check whether current product is already in Cart; yes => qty++; no => qty: 1
+      return retrievedCart.getProducts( { where: { id: prodId } });
+    })
+    .then((products) => {
+      let product;
+      if (products.length > 0) {
+        product = products[0];
+      } 
+    
+      if (product) { // if this is an existing item in Cart
+        const prevQuantity = product.cartItem.quantity;
+        newQuantity = prevQuantity + 1;
+        return product;
+      }
+      return Product.findByPk(prodId) // Otherwise, this is a new product in Cart
+    })
+    .then((product) => {
+      return fetchedCart.addProduct(product, {
+        through: { quantity: newQuantity }
+      });
+    })
+    .then(() => {
+      res.status(301).redirect('/cart');
+    })
+    .catch((err) => {
+      console.log(`\nError for ${callbackName}: ${err}\n`);
+    });
 };
 
 /*
@@ -196,12 +217,13 @@ Export a callback function to be used by routes/shop.js for
 rendering rootDir/views/shop/orders.ejs
 */
 exports.getOrders = (req, res, next) => {
-  console.log(`Hosting of views/shop/orders.ejs through router.get is in progress\nfor http://localhost:3005/orders\n`);
+  const template = `rootDir/views/shop/orders.ejs`;
+  const method = 'router.get';
+  const route = `http://localhost:3005/orders`;
+  console.log(`Hosting of ${template}\nthrough ${method} is in progress\nfor ${route}\n`);
   /*
-    Main Node rootDir/app.js implements EJS Templating Engine
-    app.set('view engine', 'ejs');
-    within this module => res.render() EJS templates
-    rendering rootDir/views/shop/orders.ejs template
+    app.js EJS middleware => app.set('view engine', 'ejs');
+    res.render('views', {})
   */
   res.render('shop/orders', {
     path: req.url ? req.url : '/orders',

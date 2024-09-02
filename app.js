@@ -89,25 +89,36 @@ sequelize
     // try looking for a user
     return User.findByPk(1);
 })
-.then(user => {
+.then((user) => {
     // if there's no User found => create
     if (!user) {
         return User.create({name: 'admin', email: 'admin@test.com'});
     }
     return Promise.resolve(user);
 })
-.then(user => {
+.then((user) => {
     console.log(`\nUser retrieved from db:`);
-    console.log(user);
+    console.log(user.toJSON());
     console.log(`\n`);
-
-    console.log(`OK!\nSucceeded in connecting Node app to Database`);
+    
+    // if !user.cart => Create a Cart for User
+    return user.getCart()
+    .then(cart => {
+        if (!cart) {
+            return user.createCart();
+        } else {
+            return cart;
+        }
+    })
+})
+.then((cart) => {
+    console.log(`\nOK!\nSucceeded in connecting Node app to Database\n`);
     const port = 3005;
     app.listen(port, () => {
-        console.log(`Server running at http://localhost:${port}`);
+        console.log(`Server running at http://localhost:${port}\n`);
     });
 })
 .catch((err) => {
-    console.log(`Error rootDir/app.js sequelize.sync()\n${err}\n`);
+    console.log(`\nError rootDir/app.js sequelize.sync()\n${err}\n`);
 });
 

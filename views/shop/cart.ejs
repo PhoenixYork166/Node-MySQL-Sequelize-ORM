@@ -1,19 +1,24 @@
 <%- include('../includes/head.ejs') %>
-    <!-- <link rel="stylesheet" href="/css/product.css"> -->
+    <link rel="stylesheet" href="/css/cart.css">
 </head>
 
 <body>
     <%- include('../includes/navigation.ejs') %>
     <main>
         <% if (products.length > 0) { %>
-            <ul>
+            <ul class="cart__item--ul">
                 <% products.forEach(p => { %>
-                    <li>
-                        <p><%= p.productData.title %> (<%= p.qty %>)</p>
-                        <form action="/cart-delete-item" method="POST">
-                            <input type="hidden" value="<%= p.productData.id %>" name="productId">
-                            <button class="btn" type="submit">Delete</button>
-                        </form>
+                    <li class="cart__item--li">
+                        <!-- p.productData.title is for using .json -->
+                        <div class="cart__item--container">
+                            <h1><%= p.title %></h1>
+                            <img class="cart__item--img" src="<%= p.imageUrl %>" />
+                            <h2>Qty: <%= p.cartItem.quantity %></h2>
+                            <form action="/cart-delete-item" method="POST">
+                                <input type="hidden" value="<%= p.id %>" name="productId">
+                                <button class="btn" type="submit">Delete</button>
+                            </form>
+                        </div>
                     </li>
                 <% }) %>
             </ul>

@@ -96,7 +96,7 @@ exports.getEditProduct = (req, res, next) => {
     })
   })
   .catch((err) => {
-    console.log(`\nFailed to retrieve a product item through route:\n${route}\nError logging:\n${err}\n`)
+    console.log(`\nFailed getEditProduct:\nreq.user.getProducts({ where: {id: ${prodId} })\n${route}\nError logging:\n${err}\n`)
   });
   /* Approach.2 Product model Sequelize .findByPk() method */
   // Product.findByPk(prodId)
