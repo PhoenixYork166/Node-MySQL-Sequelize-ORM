@@ -7,6 +7,8 @@ const errorController = require('./controllers/error');
 
 /* Using Sequelize */
 const sequelize = require('./util/database');
+const Product = require('./models/product');
+const User = require('./models/user');
 
 /* When using MySQL connection pool */
 // const db = require('./util/database');
@@ -31,6 +33,20 @@ app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+/* Adding a middleware for 'user' 
+user is only available if our Node app starts listening for req */
+app.use((req, res, next) => {
+    User.findByPk(1) // retrieving a user from db
+    .then(user => {
+        // Storing user retrieved from db into a request
+        // req.user = Sequelize object with values stored in db
+        // user now has all utility methods e.g. .destroy()
+        req.user = user;
+        next();
+    })
+    .catch(err => { console.log(`User Middleware Error:`); console.log(err); });
+});
+
 /* As we changed the way we export objects in routes/admin.js */
 app.use('/admin', adminRoutes);
 /* Using Express middleware for shopRoutes routes/shop.js */
@@ -48,14 +64,32 @@ app.use((error, req, res, next) => {
     });
 })
 
-// Using Sequelize
+// Model Associations before Syncing Sequelize
+Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
+User.hasMany(Product);
+
 // All Error Handling middleware must be above sequelize.sync()
-sequelize.sync()
+sequelize
+// NOT used in Prod, only to reflect new changes to created tables
+//.sync({ force: true }) 
+.sync()
 .then(result => {
+    // try looking for a user
+    return User.findByPk(1);
+})
+.then(user => {
+    // if there's no User found => create
+    if (!user) {
+        return User.create({name: 'admin', email: 'admin@test.com'});
+    }
+    return Promise.resolve(user);
+})
+.then(user => {
+    console.log(`\nUser retrieved from db:`);
+    console.log(user);
+    console.log(`\n`);
+
     console.log(`OK!\nSucceeded in connecting Node app to Database`);
-    // console.log(`rootDir/app.js sequelize.sync() result:`);
-    // console.log(result);
-    // console.log(`\n`);
     const port = 3005;
     app.listen(port, () => {
         console.log(`Server running at http://localhost:${port}`);
