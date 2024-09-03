@@ -199,6 +199,7 @@ form {
 .card__actions {
     padding: 1rem;
     text-align: center;
+    box-shadow: 5px 5px 10px 1px rgba(252, 227, 181, 0.8);
 }
 
 @media (max-width: 255px) {
@@ -211,25 +212,63 @@ form {
 }
 
 .card__actions--form {
-
+  padding: 10px 0;
 }
 
-.card__actions--qtyContainer {
-
+.card__actions--container {
+  margin-top: 1em;
+  display: flex;
+  justify-content: center;
 }
+
 .card__actions--qty {
-  border: 1px solid #ff842d;
+  border: 1px solid rgba(255, 132, 45, 0.5);
   border-radius: 0.2rem;
+  text-align: center;
+  max-width: 4em;
 }
 .card__actions--plus,
 .card__actions--minus {
+  font: inherit;
   text-decoration: none;
   border-radius: 0.2rem;
   background-color: #ffeb3b;
-  color: rgba(0,0,0, 0.8);
-  border: 1px solid orange;
+  color: rgba(0,0,0, 0.6);
+  border: 1px solid rgba(255,165,0, 1);
+  cursor: pointer;
+  transition: all 0.15s ease-in;
+  max-width: 1.25em;
+  width: 100%;
+  text-align: center;
+}
+.card__actions--plus:hover,
+.card__actions--minus:hover {
+  background-color: rgba(255,165,0, 1);
+  color: rgba(255,255,255, 0.8);
+
+  transform: translateY(-1px);
+  box-shadow: 0 0.5rem 1rem rgba(235, 255, 15, 0.9);
+}
+.card__actions--plus:active,
+.card__actions--minus:active {
+  background-color: white;
+  color: rgba(0, 0, 0, 0.8);
+
+  transform: translateY(0px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0);
 }
 
+.card__actions--btn {
+  transition: all .35s ease-in;
+}
+.card__actions--btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0.5rem 1rem rgba(235, 255, 15, 0.9);
+}
+.card__actions--btn:active {
+  transform: translateY(0px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0);
+}
 
 .mobile-nav {
   width: 30rem;
@@ -315,6 +354,7 @@ form {
 }
 
 .btn {
+  padding: 0.2em 0.2em;
   font: inherit;
   border: 1px solid #ff842d;
   color: white;
@@ -323,26 +363,11 @@ form {
   cursor: pointer;
   text-decoration: none;
 
-  max-width: 100px;
+  max-width: 6em;
   width: 100%;
-
-  transition: all .35s ease-in-out;
 }
 @media (max-width: 255px) {
   .btn {
     max-width: 200px;
   }
-}
-
-.btn:hover {
-  background-color: white;
-  color: rgba(0, 0, 0, 0.8);
-
-  transform: translateY(-1px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-}
-
-.btn:active {
-  transform: translateY(0);
-  box-shadow: 0 0 0 rgba(255,255,255,0.8);
 }

@@ -1,3 +1,15 @@
+.margin-bottom-small {
+    margin-bottom: 1em;
+}
+  
+.margin-bottom-medium {
+    margin-bottom: 3em;
+}
+  
+.margin-bottom-big {
+    margin-bottom: 5em;
+}
+
 .product-form {
     /* width: 20rem; */
     max-width: 90%;

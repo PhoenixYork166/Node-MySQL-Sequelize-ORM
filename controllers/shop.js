@@ -152,7 +152,7 @@ for Accepting product attributes as req.body.fields via POST request
 exports.postCart = (req, res, next) => {
   /* req.body.productId because rootDir/views/shop/product-detail.ejs <input type="hidden" name="productId" value="<%= product.id %>"> */
   const prodId = req.body.productId;
-  const currentQuantity = parseInt(req.body.quantity);
+  const requestQuantity = parseInt(req.body.quantity);
   let fetchedCart;
   let newQuantity = 1;
   const method = `router.post`;
@@ -165,7 +165,7 @@ exports.postCart = (req, res, next) => {
     .getCart()
     .then((retrievedCart) => {
       fetchedCart = retrievedCart; // hoisting req.user.getCart() result to global fetchedCart
-      // Check whether current product is already in Cart; yes => qty++; no => qty: 1
+      // Check whether request product is already in Cart; yes => qty++; no => qty: 1
       return retrievedCart.getProducts( { where: { id: prodId } });
     })
     .then((products) => {
@@ -176,7 +176,7 @@ exports.postCart = (req, res, next) => {
     
       if (product) { // if this is an existing item in Cart
         const prevQuantity = product.cartItem.quantity;
-        newQuantity = +prevQuantity + +currentQuantity;
+        newQuantity = +prevQuantity + +requestQuantity;
         return product;
       }
       return Product.findByPk(prodId) // Otherwise, this is a new product in Cart
