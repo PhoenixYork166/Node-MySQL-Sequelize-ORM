@@ -1,11 +1,16 @@
 .product-form {
-    width: 20rem;
+    /* width: 20rem; */
     max-width: 90%;
-    margin: auto;
-    display: block;
+    margin: 0 auto;
+    /* display: block; */
+
+    display: flex;
+    flex-flow: column wrap;
+    align-items: center;
 }
 
 .product-item {
+    border-radius: 0.5rem;
     width: 20rem;
     max-width: 95%;
     margin: 1rem;

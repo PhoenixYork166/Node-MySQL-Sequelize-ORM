@@ -12,9 +12,8 @@
   }
   
   .cart__item--li {
-    
     padding: 1rem;
-    border-radius: 1rem;
+    border-radius: 0.5rem;
     box-shadow: 0 2px 8px rgba(123, 113, 113, 0.26);
     margin-bottom: 2rem;
     max-width: 250px;
@@ -30,7 +29,7 @@
 
   }
 
-  @media (max-width: 37.5em) {
+  @media (max-width: 375px) {
     .cart__item--container > h1 {
       font-size: 0.8rem;
     }
