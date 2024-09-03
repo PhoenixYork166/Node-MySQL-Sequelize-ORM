@@ -1,5 +1,49 @@
-<form action="/cart" method="POST">
+<form class="card__actions--form" action="/cart" method="POST">
     <!-- NOT getting displayed on Frontend, yet this is still encoded in the request getting sent to our Node.js backend -->
     <input type="hidden" name="productId" value="<%= product.id %>">
-    <button class="btn">Add to Cart</button>
+    <div class="card__actions--container">
+        <input type="text" name="quantity" value="<%= product.quantity %>" class="card__actions--qty margin-bottom-small" placeholder="0">
+    </div>
+    <div class="card__actions--qtyContainer">
+        <button class="card__actions--plus">+</button>
+        <button class="btn card__actions--btn">Add to Cart</button>
+        <button class="card__actions--minus">-</button>
+    </div>
 </form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const plusButtons = document.querySelectorAll('.card__actions--plus');
+        const minusButtons = document.querySelectorAll('.card__actions--minus');
+        const qtyInputs = document.querySelectorAll('.card__actions--qty');
+        
+        // Since this add-to-cart.ejs is included in 3 EJS templates in total
+        // Check if the event listeners have been set to avoid duplicated events triggering
+        plusButtons.forEach((plusButton, index) => {
+            if (!plusButton.dataset.listenersAdded) {
+                plusButton.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    let currentValue = parseInt(qtyInputs[index].value, 10) || 0;
+                    qtyInputs[index].value = currentValue + 1;
+                    console.log(`qtyInputs[index].value: ${qtyInputs[index].value}`);
+                });
+                // Mark that listeners have been added
+                plusButton.dataset.listenersAdded = 'true';
+            }
+        });
+        
+        minusButtons.forEach((minusButton, index) => {
+            if (!minusButton.dataset.listenersAdded) {
+                minusButton.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    let currentValue = parseInt(qtyInputs[index].value, 10) || 0;
+                    if (currentValue > 0) {
+                        qtyInputs[index].value = currentValue - 1;
+                        console.log(`qtyInputs[index].value: ${qtyInputs[index].value}`);
+                    }
+                });
+                minusButton.dataset.listenersAdded = 'true';
+            }
+        });        
+    });
+</script>

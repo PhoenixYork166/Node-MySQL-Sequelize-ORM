@@ -1,5 +1,23 @@
 @import url('https://fonts.googleapis.com/css?family=Open+Sans:400,700');
 
+/*
+0 - 600px:      Phone
+600 - 900px:    Tablet portrait
+900 - 1200px:   Tablet landscape
+[1200 - 1800] is where our normal styles apply
+1800px + :      Big desktop
+
+$breakpoint arguement choices:
+- phone
+- tab-port
+- tab-land
+- big-desktop
+
+ORDER: Base + typography > general layout + grid > page layout > components
+
+1em = 16px
+*/
+
 * {
   /* box-sizing: border-box; */
 }
@@ -13,6 +31,18 @@ body {
 main {
   padding: 1rem;
   margin: auto;
+}
+
+.margin-bottom-small {
+  margin-bottom: 1em;
+}
+
+.margin-bottom-medium {
+  margin-bottom: 3em;
+}
+
+.margin-bottom-big {
+  margin-bottom: 5em;
 }
 
 form {
@@ -101,17 +131,30 @@ form {
 .main-header__item {
   margin: 0 1rem;
   padding: 0;
+  transition: all 3s ease-in-out;
+}
+
+.main-header__item:hover {
+  box-shadow: 0 5px 10px 10px rgba(#ffeb3b, 0.2);
 }
 
 .main-header__item a {
   text-decoration: none;
   color: white;
+  font-weight: 500;
+  transition: all 0.5s ease-in;
 }
 
 @media (max-width: 420px) {
   .main-header__item a {
     font-size: 0.6rem;
   }
+}
+
+.main-header__item a:hover {
+  transform: skewY(2deg) skewX(0deg) scale(1.0);
+  font-weight: 600;
+  box-shadow: 0 5px 10px 10px 10px rgba(#ffeb3b, 0.4);
 }
 
 .main-header__item a:hover,
@@ -156,10 +199,6 @@ form {
 .card__actions {
     padding: 1rem;
     text-align: center;
-
-    display: flex;
-    flex-flow: row nowrap;
-    justify-content: space-evenly;
 }
 
 @media (max-width: 255px) {
@@ -171,16 +210,26 @@ form {
   }
 }
 
-.card__actions button,
-.card__actions a {
-    /* margin: 0 0.25rem; */
+.card__actions--form {
+
 }
 
-@media (max-width: 255px) {
-  .card__actions a {
-    /* margin: 0 15%; */
-  }
+.card__actions--qtyContainer {
+
 }
+.card__actions--qty {
+  border: 1px solid #ff842d;
+  border-radius: 0.2rem;
+}
+.card__actions--plus,
+.card__actions--minus {
+  text-decoration: none;
+  border-radius: 0.2rem;
+  background-color: #ffeb3b;
+  color: rgba(0,0,0, 0.8);
+  border: 1px solid orange;
+}
+
 
 .mobile-nav {
   width: 30rem;
