@@ -10,6 +10,12 @@
     margin-bottom: 5em;
 }
 
+.products-container {
+    display: flex;
+    flex-flow: column wrap;
+    align-items: center;
+}
+
 .product-form {
     /* width: 20rem; */
     max-width: 90%;
