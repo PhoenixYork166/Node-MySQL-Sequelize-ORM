@@ -207,6 +207,7 @@ form {
     .card__actions {
       display: flex;
       flex-flow: column wrap;
+      align-items: center;
       padding: 1rem;
       text-align: center;
   }
@@ -368,5 +369,17 @@ form {
 @media (max-width: 255px) {
   .btn {
     max-width: 200px;
+  }
+}
+
+.btn--edit {
+  padding-left: 0.8em;
+  padding-right: 0.8em;
+}
+
+@media (max-width: 255px) {
+  .btn--edit {
+    padding-left: 0.8em;
+    padding-right: 0.8em;
   }
 }
