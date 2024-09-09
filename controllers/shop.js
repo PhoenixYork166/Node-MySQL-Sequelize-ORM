@@ -198,18 +198,35 @@ exports.postCart = (req, res, next) => {
 Export a callback function to be used by routes/shop.js for deleting
 a specific product inside Cart */
 exports.postCartDeleteProduct = (req, res, next) => {
-  /* Need id & productPrice as pass-in params 
-  when invoking Cart.deleteProduct(id, productPrice) */
+  /* Retrieving request.body.productId sent from frontend */
   const prodId = req.body.productId;
-  /* Before finding out the specific product's price
-  Let's first find out the exact product using prodId by
-  Invoking Product.findById(id, cb) 
-  using this cb callback function to extend logic for finding out
-  product.price */
-  Product.findById(prodId, (retrievedProduct) => {
-    Cart.deleteProduct(prodId, retrievedProduct.price);
-    /* After deleting the specific product inside cart */
+
+  /* i. Using Magic method req.user.method() */
+  req.user.getCart()
+  .then((retrievedCart) => {
+    // ii. retrievedCart is an object of products [{key1: keyValue1}, {key2: keyValue2}, {...}]
+    // return this retrievedCart object to next Promise by:
+    return retrievedCart.getProducts({
+      where: { id: prodId }
+    });
+  })
+  // iii. receiving products{} from previous Promise
+  .then((products) => {
+    if (!products || products.length === 0) {
+      res.status(404).send(`Product is not found in cart\n`);
+    }
+    // Map out the desired product{} which is 1st product{} inside products[{},{}]
+    const product = products[0];
+    // Having mapped out the desired product{} Sequelize provides us with a default implemenation product.cartItem property which has .destroy() method to delete a specific product
+    // v. Finish this Promise-chain off using Magic method by returning something
+    return product.cartItem.destroy();
+  })
+  .then((result) => {
+    // vi. Having received a successful result => redirect page to '/cart'
     res.status(301).redirect('/cart');
+  })
+  .catch((err) => {
+    console.log(`\nError for ${callbackName}: ${err}\n`);
   });
 };
 
