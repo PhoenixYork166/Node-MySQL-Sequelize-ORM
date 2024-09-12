@@ -4,10 +4,6 @@ without instantiation */
 // import Product from '../models/product';
 const Product = require('../models/product');
 
-/* Temp Cart items database .json file */
-// import Cart from '../models/cart';
-const Cart = require('../models/cart');
-
 /* 
 Export a callback function to be used by 
 router.get('/products', shopController.getProducts); in routes/shop.js 
@@ -223,11 +219,58 @@ exports.postCartDeleteProduct = (req, res, next) => {
   })
   .then((result) => {
     // vi. Having received a successful result => redirect page to '/cart'
-    res.status(301).redirect('/cart');
+    res.status(200).redirect('/cart');
   })
   .catch((err) => {
     console.log(`\nError for ${callbackName}: ${err}\n`);
+    res.status(400).json({ error: `Unable to POST Cart Items to Order`, details: err.toString() });
   });
+};
+
+/*
+Export a callback function to move table CartItems to table OrderItems
+*/
+exports.postOrder = (req, res, next) => {
+  const route = `http://localhost:3005/create-order`;
+  let fetchedCart;
+
+  /* Using Magic method to access currently logged-in user cart */
+  req.user.getCart()
+  .then(retrievedCart => {
+    // once we successfully retrieve a Cart => Hoist to this callback scope
+    fetchedCart = retrievedCart;
+    return retrievedCart.getProducts()
+  })
+  .then(products => {
+    console.log(`${route}\nproducts:\n`);
+    console.log(products);
+    return req.user.createOrder()
+    .then(order => {
+        // adding each product in cart with respective quantity
+        return order.addProducts(
+          products.map(eachProduct => {
+            eachProduct.orderItem = { quantity: eachProduct.cartItem.quantity };
+          return eachProduct;
+          })
+        );
+    })
+    .then(result => {
+      /* Clean up Cart 
+      Resetting Cart after order.addProducts(products.map(eachProduct => { eachProduct.orderItem = { quantity: eachProduct.cartItem.quantity }; return eachProduct; }) )
+      */
+      return fetchedCart.setProducts(null);
+    })
+    .then(result => {
+      // Finally redirectly the page back to /orders
+      res.status(200).redirect('/orders');
+    })
+    .catch(err => {
+      console.log(`\nError posting Cart Items to Order: ${err}\n`);
+    });
+  })
+  .catch(err => {
+    console.log(`\n${route}\nError retrieving current user's cart: ${err}\n`);
+  })
 };
 
 /* 
@@ -238,15 +281,29 @@ exports.getOrders = (req, res, next) => {
   const template = `rootDir/views/shop/orders.ejs`;
   const method = 'router.get';
   const route = `http://localhost:3005/orders`;
+  const callbackName = `rootDir/controllers/shop.js\nexports.getOrders: RequestHandler = (req, res, next) => {}\n`;
   console.log(`Hosting of ${template}\nthrough ${method} is in progress\nfor ${route}\n`);
-  /*
-    app.js EJS middleware => app.set('view engine', 'ejs');
-    res.render('views', {})
+  
+  /* Magic method .getOrders() to retrieve currently logged-in user's Orders */
+  /* Using 'Eager Loading' technique provided by Sequelize
+  ({ include: ['products'] }) because of 
+  Associations in app.js
+  Order.belongsToMany(Product, { through: OrderItem });
   */
-  res.render('shop/orders', {
-    path: req.url ? req.url : '/orders',
-    pageTitle: 'Your Orders',
+  req.user.getOrders({ include: ['products'] })
+  .then(orders => {
+    console.log(`${callbackName}\norders:`);
+    console.log(orders);
+
+    res.render('shop/orders', {
+      path: req.url ? req.url : '/orders',
+      pageTitle: 'Your Orders',
+      orders: orders
+    })
   })
+  .catch(err => {
+    console.log(`\n${route}\nError retrieving current user's Order: ${err}\n`);
+  });  
 };
 
 /* 

@@ -33,6 +33,10 @@ main {
   margin: auto;
 }
 
+.margin-bottom-btn {
+  margin-bottom: 0.5em;
+}
+
 .margin-bottom-small {
   margin-bottom: 1em;
 }

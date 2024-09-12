@@ -14,7 +14,11 @@
                             <h1><%= p.title %></h1>
                             <img class="cart__item--img" src="<%= p.imageUrl %>" />
                             <h2>Qty: <%= p.cartItem.quantity %></h2>
-                            <form action="/cart-delete-item" method="POST">
+                            <form 
+                                action="/cart-delete-item" 
+                                method="POST"
+                                class="margin-bottom-btn"
+                            >
                                 <input type="hidden" value="<%= p.id %>" name="productId">
                                 <button class="btn" type="submit">Delete</button>
                             </form>
@@ -22,6 +26,13 @@
                     </li>
                 <% }) %>
             </ul>
+            <div class="centered">
+                <form action="/create-order" method="POST" >
+                    <button type="submit" class="btn cart__item--order">
+                        Oder
+                    </button>
+                </form>
+            </div>
         <% } else { %>
             <h1>No Products in Cart</h1>
         <% } %>

@@ -17,6 +17,7 @@ router.get('/products', shopController.getProducts);
 e.g.
 router.get('/products/delete', callback);
 */
+router.post('/create-order', shopController.postOrder);
 
 /* Registering http://localhost:3005/products/21243 Express Router route /products/randomId for rendering rootDir/views/shop/product-detail.ejs template */
 router.get('/products/:productId', shopController.getProductDetail);

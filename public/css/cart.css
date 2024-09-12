@@ -25,6 +25,11 @@
     align-items: center;
   }
 
+  /* button to send POST request to route http://localhost:3005/create-order */
+  .cart__item--order {
+    padding: 0.2em 0.5em;
+  }
+
   .cart__item--container > h1 {
 
   }

@@ -11,6 +11,8 @@ const Product = require('./models/product');
 const User = require('./models/user');
 const Cart = require('./models/cart');
 const CartItem = require('./models/cart-item');
+const Order = require('./models/order');
+const OrderItem = require('./models/order-item');
 
 /* When using MySQL connection pool */
 // const db = require('./util/database');
@@ -66,24 +68,28 @@ app.use((error, req, res, next) => {
     });
 })
 
-// Model Associations before Syncing Sequelize to allow Magic methods
-// User-Product One-To-Many Relationship
+/* User-Product One-To-Many Relationship */
 User.hasMany(Product);
 // Complementing User.hasMany(Product) relationship by specifying the other side of relationship
 // onDelete: 'CASCADE' => when one User is deleted => all associated Product records auto-deleted
 Product.belongsTo(User, { constraints: true, onDelete: 'CASCADE' });
 
-// User-Cart One-To-One Relationship
+/* User-Cart One-To-One Relationship */
 User.hasOne(Cart);
 // Complementing on the other side
 Cart.belongsTo(User);
-Cart.belongsToMany(Product, { through: CartItem }); // One Cart holds many products
-Product.belongsToMany(Cart, { through: CartItem }); // One Product can be part of many Carts
+Cart.belongsToMany(Product, { through: CartItem }); // Cart belongsToMany Product through the junction table CartItem
+Product.belongsToMany(Cart, { through: CartItem }); // Product belongsToMany Cart through table CartItem
+
+/* User-Order One-To-Many Relationship */
+User.hasMany(Order);
+Order.belongsTo(User); // User replaces Order
+Order.belongsToMany(Product, { through: OrderItem }); // 1 Order holds many products
 
 // All Error Handling middleware must be above sequelize.sync()
 sequelize
 // NOT used in Prod, only to reflect new changes to created tables
-//.sync({ force: true }) 
+// .sync({ force: true }) 
 .sync()
 .then(result => {
     // try looking for a user
